@@ -1,0 +1,38 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Phone App UI</title>
+<link rel="stylesheet" href="HTMLAPPstyle.css">
+</head>
+
+<body>
+
+<div class="phone">
+  <div class="app">
+
+    <!-- Header -->
+    <div class="header">
+      <h2>My Devices</h2>
+      <button class="settings-btn" onclick="openSettings()">⚙️</button>
+    </div>
+
+    <!-- Device -->
+    <div class="device-card">
+      <span>Living Room Device</span>
+      <button onclick="openSettings()">Edit</button>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="settingsScreen" class="screen hidden">
+      <button class="back-btn" onclick="closeSettings()">← Back</button>
+      <h3>Device Settings</h3>
+      <p>Edit your device here</p>
+    </div>
+
+  </div>
+</div>
+
+<script src="APPscript.js"></script>
+</body>
+</html>
