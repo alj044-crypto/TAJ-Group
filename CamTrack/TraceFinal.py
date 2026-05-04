@@ -4,6 +4,7 @@ from collections import defaultdict
 import time
 import numpy as np
 import os
+import requests
 
 # =========================
 # 🔴 EDIT THESE
@@ -28,17 +29,17 @@ CLASS_NAMES = {
 TEMPLATES = [
     {
         "name": "circle",
-        "path": r"C:\Users\ajaxs\Desktop\templates\circle.png",
+        "path": r"C:\Users\ajaxs\Desktop\Hentai\Sauce Codes\School\Group Project\TAJ-Group\CamTrack\Template Images\thecircle.png",
         "result": "Circle gesture detected!"
     },
     {
         "name": "line",
-        "path": r"C:\Users\ajaxs\Desktop\templates\line.png",
+        "path": r"C:\Users\ajaxs\Desktop\Hentai\Sauce Codes\School\Group Project\TAJ-Group\CamTrack\Template Images\theline.png",
         "result": "Line gesture detected!"
     },
     {
         "name": "zigzag",
-        "path": r"C:\Users\ajaxs\Desktop\templates\zigzag.png",
+        "path": r"C:\Users\ajaxs\Desktop\Hentai\Sauce Codes\School\Group Project\TAJ-Group\CamTrack\Template Images\TheZigZag.png",
         "result": "Zigzag gesture detected!"
     }
 ]
@@ -311,14 +312,16 @@ while True:
             # =========================
             # 🟢 PUT ACTIONS HERE
             # =========================
-            if best_template["name"] == "circle":
-                print("ACTION: circle action runs here")
-
-            elif best_template["name"] == "line":
-                print("ACTION: line action runs here")
-
-            elif best_template["name"] == "zigzag":
-                print("ACTION: zigzag action runs here")
+            try:
+                response = requests.post('http://localhost:5000/gesture_detected', 
+                                       json={'gesture': best_template['name']},
+                                       timeout=1)
+                if response.status_code == 200:
+                    print(f"Flask notified: {best_template['name']}")
+                else:
+                    print(f"Flask error: {response.status_code}")
+            except requests.exceptions.RequestException as e:
+                print(f"Failed to contact Flask: {e}")
 
         else:
             print("NO MATCH FOUND")

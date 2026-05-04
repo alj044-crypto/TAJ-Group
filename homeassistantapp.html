@@ -321,6 +321,28 @@ input {
     font-size: 18px;
 }
 
+.gesture-item {
+    margin: 15px 0;
+    padding: 15px;
+    background: var(--panel);
+    border-radius: 10px;
+}
+
+.gesture-item h4 {
+    margin: 0 0 10px 0;
+    color: var(--text);
+}
+
+.gesture-item button {
+    margin-top: 10px;
+    padding: 8px 15px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
 /* hidden only for sleep menu */
 .hidden {
     display: none;
@@ -377,6 +399,7 @@ input {
         <div class="options">
             <button class="tile interactive" onclick="toggleMenu('lightsMenu')">💡 Lights</button>
             <button class="tile interactive" onclick="toggleMenu('audioMenu')">🔊 Audio</button>
+            <button class="tile interactive" onclick="toggleMenu('gesturesMenu')">🤖 Gestures</button>
             <button class="tile interactive" onclick="toggleMenu('weatherMenu')">🌤️ Weather</button>
             <button class="tile interactive" onclick="toggleMenu('clockMenu')">⏰ Clock</button>
         </div>
@@ -410,6 +433,18 @@ input {
             <div class="top">
                 <button class="button interactive" onclick="toggleMenu('audioMenu')">←</button>
                 <h2>Audio</h2>
+            </div>
+        </div>
+
+        <div class="openedmenu card hiddenMenu" id="gesturesMenu">
+            <div class="top">
+                <button class="button interactive" onclick="toggleMenu('gesturesMenu')">←</button>
+                <h2>Gesture Commands</h2>
+            </div>
+            <div id="gesturesContent">
+                <h3>Configure Non-Verbal Commands</h3>
+                <div id="gestureList"></div>
+                <button class="tile interactive" onclick="loadGestures()">Load Current Commands</button>
             </div>
         </div>
 
@@ -697,6 +732,54 @@ let SoundOn = true;
 soundSlider.addEventListener('input', () => {
         SoundOn = soundSlider.value == 1;
 });
+
+/* ============================
+ Gesture Commands Logic
+============================ */
+
+async function loadGestures() {
+    try {
+        const response = await fetch('/get_commands');
+        const commands = await response.json();
+        
+        const gestureList = document.getElementById('gestureList');
+        gestureList.innerHTML = '';
+        
+        for (const [gesture, command] of Object.entries(commands)) {
+            const div = document.createElement('div');
+            div.className = 'gesture-item';
+            div.innerHTML = `
+                <h4>${gesture.charAt(0).toUpperCase() + gesture.slice(1)} Gesture</h4>
+                <input type="text" value="${command}" id="cmd-${gesture}" />
+                <button onclick="updateGesture('${gesture}')">Update</button>
+            `;
+            gestureList.appendChild(div);
+        }
+    } catch (error) {
+        console.error('Failed to load gestures:', error);
+    }
+}
+
+async function updateGesture(gesture) {
+    const command = document.getElementById(`cmd-${gesture}`).value;
+    try {
+        const response = await fetch('/update_command', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ gesture, command })
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
+            alert('Command updated successfully!');
+        } else {
+            alert('Failed to update command');
+        }
+    } catch (error) {
+        console.error('Failed to update gesture:', error);
+    }
+}
 
 /* ============================
  Menu Toggle Logic

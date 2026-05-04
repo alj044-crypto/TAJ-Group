@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phone App UI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='HTMLAPPstyle.css') }}">
+</head>
+
+<body>
+
+<div class="phone">
+  <div class="app">
+
+    <div id="homeScreen">
+
+      <div class="header">
+        <h2>My Devices</h2>
+        <button class="settings-btn" onclick="openSettings()">⚙️</button>
+      </div>
+
+
+      <div class="device-card">
+        <div>
+          <h3 id="displayDeviceName">No Device Saved</h3>
+          <p id="displayTemplateName">Template: none</p>
+          <p id="displayCommand">Command: none</p>
+        </div>
+
+        <button onclick="runCommand()">Run</button>
+      </div>
+      
+      <div id="deviceList"></div>
+
+      <div class="status-box">
+        <h3>System Status</h3>
+        <p id="statusText">Waiting for command...</p>
+      </div>
+
+    </div>
+
+    <div id="settingsScreen" class="screen hidden">
+
+      <button class="back-btn" onclick="closeSettings()">← Back</button>
+
+      <h2>Add Template</h2>
+
+      <label>Device Name</label>
+      <input id="deviceName" type="text" placeholder="Living Room Device">
+
+      <label>Template Name</label>
+      <input id="templateName" type="text" placeholder="Open Hand">
+
+      <select id="commandSelect">
+        <option value="Turn_Light_On">Turn Light On</option>
+        <option value="Turn_Light_Off">Turn Light Off</option>
+        <option value="Play_Music">Play Music</option>
+        <option value="Stop_Music">Stop Music</option>
+        <option value="Turn_Volume_Up">Volume Up</option>
+        <option value="Turn_Volume_Down">Volume Down</option>
+      </select>
+
+      <button class="save-btn" onclick="saveSettings()">Save Template</button>
+
+    </div>
+
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='APPscript.js') }}"></script>
+</body>
+</html>
