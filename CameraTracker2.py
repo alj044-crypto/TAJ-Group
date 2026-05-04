@@ -1,8 +1,8 @@
 import cv2
 from ultralytics import YOLO
 
-model = YOLO("yolov8n.pt")  # lightweight model
-cap = cv2.VideoCapture(0) # Use 0 for webcam, or provide video file path
+model = YOLO(r"C:\Users\ajaxs\Desktop\Hentai\Sauce Codes\School\Group Project\Post Git\yolov8m-hand2\weights\best.pt")  # lightweight model
+cap = cv2.VideoCapture(1) # Use 0 for webcam, or provide video file path
 
 # uses while true loop to make sure window stays up until user presses q to quit
 while True:
