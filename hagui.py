@@ -1,10 +1,12 @@
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+from ctypes import cast, POINTER
+from comtypes import CLSCTX_ALL
 from datetime import datetime
 import threading
 import time
-import subprocess
 app = Flask(__name__)
 
 CORS(app)
@@ -27,6 +29,8 @@ def set_alarm():
         else:
             alarms.append(alarm_time)
             print(f"[INFO] Alarm set for {alarm_time}")
+            alarms.sort(key=lambda t: datetime.strptime(t, "%H:%M"))
+
 
     return jsonify({
         "status": "ok",
@@ -162,42 +166,39 @@ def reset_stopwatch():
 #Audio Section
 #################################
 
-def set_volume(level):
-    try:
-        subprocess.run(
-            f"pactl set-sink-volume @DEFAULT_SINK@ {level}%",
-            shell=True
-        )
-    except Exception as e:
-        print("[AUDIO FAIL]", e)
+devices = AudioUtilities.GetSpeakers()._dev
 
-def toggle_mute():
-    try:
-        subprocess.run(
-            "pactl set-sink-mute @DEFAULT_SINK@ toggle",
-            shell=True
-        )
-    except Exception as e:
-        print("[MUTE FAIL]")
+interface = devices.Activate(
+    IAudioEndpointVolume._iid_,
+    CLSCTX_ALL,
+    None
+)
+
+volume = cast(interface, POINTER(IAudioEndpointVolume))
 
 @app.route("/audio_volume", methods=["POST"])
 def audio_volume():
     data = request.json
     level = int(data.get("level", 50))
 
-    set_volume(level)
+    scalar = level / 100
+
+    volume.SetMasterVolumeLevelScalar(scalar, None)
 
     return jsonify({
-        "ok": True,
+        "status": "ok",
         "volume": level
     })
 
 @app.route("/audio_mute", methods=["POST"])
 def audio_mute():
-    toggle_mute()
+    current = volume.GetMute()
+
+    volume.SetMute(not current, None)
 
     return jsonify({
-        "ok": True
+        "status": "ok",
+        "muted": not current
     })
 
 if __name__ == "__main__":
