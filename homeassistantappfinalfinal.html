@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Home Assistant App</title>
+<style>
+
+/* ======================================
+ global box-sizing and styles 
+====================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #121212;
+    --panel: #222222;
+    --text: #ffffff;
+}
+
+.light {
+    --bg: #f5f5f5;
+    --panel: #e6e6e6;
+    --text: #000000;
+}
+
+body {
+    /* display/box */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    /* visuals */
+    background: #11111155;
+    /* text */
+    font-family: 'Arial', sans-serif;
+}
+
+/* ======================================
+ layout or full page structure 
+====================================== */
+
+/* outside border for all pages to simulate device frame */
+.frame {
+    /* position */
+    position: relative;
+    /* box */
+    width: 820px;
+    height: 500px;
+    border-radius: 30px;
+    padding: 20px;
+    /* visuals */
+    background: #000;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+
+/* idle/sleep screen */
+.sleep {
+    /* position */
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    /* display/box */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* visuals */
+    background: linear-gradient(-45deg, #4a3c53f5, #111111, #372c2c, #1b171f, #0a0a0a);
+    animation: flow 30s ease-in-out infinite;
+    background-size: 200% 200%;
+    color: white;
+    /* text */
+    font-size: 40px;
+}
+
+#wake {
+    /* text */
+    font-size: 20px;
+    opacity: 0.5;
+}
+
+#clock, #menuClock {
+    /* display/box */
+    margin-bottom: 5px;
+    /* text */
+    font-size: 80px;
+    opacity: 0.8;
+}
+
+#sleepWeather {
+    /* display/box */
+    margin-bottom: 4px;
+    /* text */
+    font-size: 40px;
+    opacity: 0.7;
+}
+
+/* main home page */
+.UI {
+    /* position */
+    position: relative;
+    /* display/box */
+    height: 100%;
+    /* visuals */
+    background: var(--bg);
+    overflow: hidden;
+    transition: opacity 0.3s ease-out;
+    /* text */
+    color: var(--text);
+}
+
+.top {
+    /* position */
+    height: 50px;
+    /* display/box */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+/* ======================================
+ Reusable components
+====================================== */
+.options {
+    /* display/box */
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.tile {
+    /* display/box */
+    border-radius: 15px;
+    padding: 20px;
+    /* visuals */
+    background: var(--panel);
+    border: none;
+    /* text */
+    font-size: 20px;
+    color: var(--text);
+}
+
+.button {
+    /* visuals */
+    background: none;
+    border: none;
+    color: var(--text);
+    /* text */
+    font-size: 24px;
+}
+
+.openedmenu {
+    /* position */
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* display/box */
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    /* visuals */
+    background: var(--bg);
+    transition: transform 0.3s ease-out;
+    /* text */
+    color: var(--text);
+}
+
+/* state for hiding menus */
+.hiddenMenu {
+    /* position*/
+    transform: translateX(100%);
+    /* visuals */
+    pointer-events: none;
+}
+
+.flex-center {
+    /* display/box */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-column {
+    /* display/box */
+    display: flex;
+    flex-direction: column;
+    
+}
+
+.card {
+    /* display/box */
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.interactive {
+    /* visuals */
+    cursor: pointer;
+    transition: background 0.2s ease-out, opacity 0.2s ease-out;
+}
+
+/*=======================
+ specific components
+========================*/
+
+/* weather menu */
+#weatherMenu {
+    /* visuals */
+    background: linear-gradient(145deg, #293553, #3b3753);
+
+}
+
+#weatherMenuContent {
+    /* display/box */
+    width: 100%;
+    height: calc(100% - 50px);
+    margin-top: 15px;
+}
+
+.weatherContent {
+    /* display/box */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    height: 80%;
+    /* text */
+    text-align: center; 
+}
+
+.weather-card {
+    /* position */
+    position: relative;
+    /* display/box */
+    display: flex;
+    width: 100%;
+    max-width: none;
+    padding: 25px;
+    border-radius: 20px;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    /* visuals */
+    background: var(--bg);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    opacity: 0.7;
+}
+
+.weather-main {
+    /* display/box */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.weather-side {
+    /* display/box */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    /* text */
+    text-align: left;
+    font-size: 20px;
+}
+
+.weather-decoration {
+    /* position */
+    position: absolute;
+    bottom: -40px;
+    left: -20%;
+    width: 300%;
+    height: 75px;
+    /* visuals */
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent 70%);
+    animation: flow2 20s ease-in-out infinite;
+    filter: blur(20px);
+    pointer-events: none;
+}
+
+.weather-icon {
+    /* text */
+    font-size: 50px;
+    margin-bottom: 10px;
+}
+
+.weather-temp {
+    /* text */
+    font-size: 40px;
+    margin-bottom: 5px;
+}
+
+.clockSections {
+    /* display/box */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#clockMenu {
+    /* display/box*/
+    display: flex;
+    flex-direction: column;
+    height:100%;
+    min-height: 0;
+}
+
+#clockMenuContent {
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+    max-height: 100%;
+    padding-bottom: 10px;
+    margin-top: 20px;
+    font-size: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+input {
+    /* display/box */
+    padding: 10px;
+    border-radius: 10px;
+    margin: 10px 0;
+    border: none;
+    /* text */
+    font-size: 18px;
+}
+
+/* hidden only for sleep menu */
+.hidden {
+    display: none;
+}
+
+.alarmLayout {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    gap: 20px;
+    min-height: 0;
+    width: 100%;
+    margin-top: 10px;
+    justify-content: center
+}
+
+#alarmSetter {
+    flex: 0 0 40%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+}
+
+#alarmList {
+    /* text */
+    flex: 1.1;
+    overflow-y: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tile-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#timerSetter input {
+    width: 100%;
+    min-width: 0;
+}
+
+#calendarMenuContent {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    max-height: 100%;
+    padding: 10px;
+}
+
+#alarm-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+/*=======================
+ animations
+========================*/
+
+
+/* animation for weather decoration */
+@keyframes flow2 {
+    0% { transform: translateX(-10%) scale(1); opacity: 0.5; }
+    50% { transform: translateX(10%) scale(1.1); opacity: 0.7; }
+    100% { transform: translateX(-10%) scale(1); opacity: 0.5; }
+}
+
+/* animation keyframes for sleep screen */
+@keyframes flow {
+    0% { background-position: 0% 50%; }
+    25% { background-position: 50% 100%; }
+    50% { background-position: 100% 50%; }
+    75% { background-position: 50% 0%; }
+    100% { background-position: 0% 50%; }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="frame">
+
+    <div class="sleep flex-center card" id="sleepscreen">
+        
+        <div class="flex-center">
+            <div id="clock">00:00:00</div>
+        </div>
+
+        <div id="sleepWeather"></div>
+        
+
+        <div id="wake">tap to wake</div>
+    </div>
+
+    <div class="UI card hidden" id="UIScreen">
+
+        <div class="top">
+            <h2 id="uiClock">00:00</h2>
+            <h2>Show and Tell</h2>
+            <button class="button interactive
+            " onclick="toggleMenu('settingsMenu')">⚙️</button>
+        </div>
+
+        <div class="options">
+            <button class="tile interactive" onclick="toggleMenu('calendarMenu')">📅 Calendar</button>
+            <button class="tile interactive" onclick="toggleMenu('audioMenu')">🔊 Audio</button>
+            <button class="tile interactive" onclick="toggleMenu('weatherMenu')">🌤️ Weather</button>
+            <button class="tile interactive" onclick="toggleMenu('clockMenu')">⏰ Clock</button>
+        </div>
+
+        <div class="openedmenu card hiddenMenu" id="settingsMenu">
+            <div class="top">
+                <button class="button interactive" onclick="toggleMenu('settingsMenu')">←</button>
+                <h2>Settings</h2>
+            </div>
+
+            <div id="settingsContent">
+                <h3>Brightness</h3>
+                <input type="range" min="20" max="100" value="100" id="brightnessSlider">
+
+                <h3>Theme (Light / Dark)</h3>
+                <input type="range" min ="0" max="1" value="1" step="1" id="themeSlider">
+
+                <h3>Sound (Off / On)</h3>
+                <input type="range" min ="0" max="1" value="1" step="1" id="soundSlider">
+            </div>
+        </div>
+
+        <div class="openedmenu card hiddenMenu" id="calendarMenu">
+            <div class="top">
+                <button class="button interactive" onclick="toggleMenu('calendarMenu')">←</button>
+                <h2>Calendar</h2>
+            </div>  
+
+            <div id="calendarMenuContent" style="padding:10px;"></div>
+        </div>
+
+        <div class="openedmenu card hiddenMenu" id="audioMenu">
+            <div class="top">
+                <button class="button interactive" onclick="toggleMenu('audioMenu')">←</button>
+                <h2>Audio</h2>
+            </div>
+
+            <div style="margin-top:20px; display:flex; flex-direction:column; gap:20px;">
+                <div class="tile" style="display:flex; flex-direction:column; gap:10px;"">
+                    <span>🔊 Volume</span>
+                    <span id="volumeLabel">50%</span>
+                </div>
+                    <input type="range" min="0" max="100" value="50" id="volumeSlider" style="width:100%;">
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="tile interactive" onclick="toggleMute()">🔇Toggle Mute</button>
+                <button class="tile interactive" style="flex:1;" onclick="setVolumeQuick(25)">25%</button>
+                <button class="tile interactive" style="flex:1;" onclick="setVolumeQuick(50)">50%</button>
+                <button class="tile interactive" style="flex:1;" onclick="setVolumeQuick(100)">100%</button>
+            </div>
+
+            <div id="audioStatus" style="margin-top:10px; opacity:0.7; font-size:16px;">
+                ready
+            </div>
+        </div>
+
+        <div class="openedmenu card hiddenMenu" id="weatherMenu">
+            <div class="top">
+                <button class="button interactive" onclick="toggleMenu('weatherMenu')">←</button>
+                <h2>Weather</h2>
+            </div>
+
+            <div id="weatherMenuContent" class="weatherContent"></div>
+        </div>
+
+        <div class="openedmenu card hiddenMenu" id="clockMenu">
+            <div class="top">
+                <button class="button interactive" onclick="toggleMenu('clockMenu')">←</button>
+                <h2>Clock</h2>
+            </div>
+
+            <div class="flex-center" id="menuClock">00:00:00</div>
+
+            <div class="clockSections">
+                <button class="tile interactive" onclick="showClockTab('alarms')">⏰ Alarms</button>
+                <button class="tile interactive" onclick="showClockTab('stopwatch')">⏱️ Stopwatch</button>
+                <button class="tile interactive" onclick="showClockTab('timer')">⏲ Timer</button>
+            </div>
+
+            <div id="clockMenuContent"></div>            
+        </div>
+    </div>
+
+    <div class="sleep flex-center card hidden" id="alarmScreen">
+        
+        <div class="flex-center flex-column">
+            <div id="eventTimeDisplay" style="font-size:100px; margin:10px;"></div>
+            <div id="eventTypeDisplay" style="font-size:30px;"></div>
+            <button onclick="stopEvent()" class="tile interactive" style="margin-top: 10px;">Stop</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+const sleepscreen = document.getElementById('sleepscreen');
+const UIScreen = document.getElementById('UIScreen');
+const clock = document.getElementById('clock');
+const uiClock = document.getElementById('uiClock')
+sleepscreen.addEventListener('click', () => {
+    sleepscreen.classList.add('hidden');
+    UIScreen.classList.remove('hidden');
+
+    sleepTimer();
+});
+
+function updateClock() {
+    const now = new Date();
+    const fulltime = now.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit'
+    });
+
+    const shorttime = now.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit'
+    });
+
+    clock.textContent = fulltime;
+    menuClock.textContent = fulltime;
+    uiClock.textContent = shorttime;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+
+let sleepTimeout;
+const sleepDelay = 25000;
+
+function sleep() {
+    UIScreen.classList.add('hidden');
+    sleepscreen.classList.remove('hidden');
+}
+
+function sleepTimer() {
+    if (!UIScreen.classList.contains('hidden')) {
+        clearTimeout(sleepTimeout);
+        sleepTimeout = setTimeout(sleep, sleepDelay);
+    }
+    
+}
+
+document.addEventListener('keydown', sleepTimer);
+document.addEventListener('click', sleepTimer);
+
+/* ============================
+ Weather API Integration
+============================ */
+
+const sleepWeather = document.getElementById('sleepWeather');
+
+const LAT = 32.5093;
+const LON = -92.1193;
+
+function getWeather(code) {
+    if (code === 0) return "☀️";
+    if ([1, 2, 3].includes(code)) return "⛅";
+    if ([45, 48].includes(code)) return "🌫️";
+    if ([51, 53, 55, 56, 57].includes(code)) return "🌦️"
+    if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "🌧️";
+    if ([71, 73, 75, 77, 85, 86].includes(code)) return "❄️";
+    if ([95, 96, 99].includes(code)) return "⛈️";
+}
+
+function getWeatherDescription(code) {
+    if (code === 0) return "Clear Skies";
+    if ([1, 2, 3].includes(code)) return "Partly Cloudy";
+    if ([45, 48].includes(code)) return "Foggy";
+    if ([51, 53, 55, 56, 57].includes(code)) return "Light Rain";
+    if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "Rain";
+    if ([71, 73, 75, 77, 85, 86].includes(code)) return "Snow";
+    if ([95, 96, 99].includes(code)) return "Storming";
+}
+
+async function updateWeather() {
+    sleepWeather.textContent = "loading..."
+    const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current_weather=true&hourly=temperature_2m,relative_humidity_2m,uv_index,visibility,weather_code,wind_speed_10m&current=temperature_2m,relative_humidity_2m,uv_index,visibility,weather_code,wind_speed_10m&timezone=auto`);
+    const data = await response.json();
+    const current = data.current ?? data.current_weather;
+    const weatherCode = current.weather_code ?? current.weathercode;
+    const weatherTemp = Math.round((current.temperature_2m ?? current.temperature) * 9/5 + 32);
+    const wind = current.wind_speed_10m ?? current.windspeed;
+
+    const hours = data.hourly.time.length - 1;
+    const humidity = data.hourly.relative_humidity_2m[hours];
+    const uv = data.hourly.uv_index[hours];
+    const visibility = Math.round(data.hourly.visibility[hours] / 1000)
+    const emoji = getWeather(weatherCode);
+    
+    sleepWeather.textContent = `${emoji} ${weatherTemp}°F`;
+
+    const weatherMenu = document.getElementById('weatherMenuContent');
+    if (weatherMenu) {
+        weatherMenu.innerHTML = `
+            <div class="weather-card">
+                <div class="weather-main">
+                    <div class="weather-icon">${emoji}</div>
+                    <div class="weather-temp">${weatherTemp}°F</div>
+                    <div class="weather-description">${getWeatherDescription(weatherCode)}</div>
+                </div>
+
+                <div class="weather-side">
+                    <div class="weather-wind">🍃Wind: ${wind} mph</div>
+                    <div class="weather-humidity">💧Humidity: ${humidity}%</div>
+                    <div class="weather-uv">☀️UV Index: ${uv}</div>
+                    <div class="weather-visibility">👁️Visibility: ${visibility} km</div>
+                </div>
+
+                <div class="weather-decoration"></div>
+            </div>
+        `;
+    }
+}
+
+updateWeather();
+setInterval(updateWeather, 300000);
+
+/* ============================
+ Clock Menu
+============================ */
+
+const alarmScreen = document.getElementById("alarmScreen")
+let eventActive = false;
+let currentEventType = null;
+
+function showClockTab(tab) {
+    const container = document.getElementById('clockMenuContent');
+
+    if (tab === 'alarms') {
+        container.innerHTML = `
+            
+            <div class="alarmLayout">
+                <div id="alarmSetter">
+                    <h3>Alarms</h3>
+                    <input id="alarmInput" type="time" onclick="openTimePicker()" />
+                    <button onclick="setAlarm(); loadAlarms();">Set Alarm</button>
+                </div>            
+                <div id="alarmList"></div>
+            </div>
+        `;
+        
+        requestAnimationFrame(() => {
+            loadAlarms();
+            openTimePicker();
+        });
+    } else if (tab === 'stopwatch') {
+        container.innerHTML = `
+            <h3>Stopwatch</h3>
+            <div id="stopwatchDisplay" class="flex-center" style="font-size: 35px;">00:00:00.00</div>
+            <div class="flex-center">
+                <div style="width: clamp(287px, 50%, 533px); display: flex; gap: 5px;">
+                    <button class="tile interactive" style="flex: 1;" onclick="startStopwatch()">Start</button>
+                    <button class="tile interactive" style="flex: 1;" onclick="stopStopwatch()">Stop</button>
+                    <button class="tile interactive" style="flex: 1;" onclick="resetStopwatch()">Reset</button>
+                </div>
+            </div>
+        `;
+    } else if (tab === 'timer') {
+        container.innerHTML = `
+            <div class="alarmLayout">
+                <div id="timerSetter" style="flex: 0 0 40%;">
+                    <h3>Timer</h3>
+                    <div style="display:flex; gap:3px">
+                    <input id="hoursInput" type="number" placeholder="HH" style="flex:1; text-align:center;">
+                    <input id="minutesInput" type="number" placeholder="MM" style="flex:1; text-align:center;">
+                    <input id="secondsInput" type="number" placeholder="SS" style="flex:1; text-align:center;">
+                    </div>
+                </div>            
+                <div id="timerDisplayArea" class="flex-column flex-center" style="flex: 1;">
+                    <div id="timerDisplay" style="font-size: 60px;">00:00:00</div>
+                    <div style="display:flex; width: clamp(287px, 50%, 533px);">
+                        <button class="tile interactive" style="flex: 1;" onclick="startTimer()">Start</button>
+                        <button class="tile interactive" style="flex: 1;" onclick="pauseTimer()">Pause</button>
+                        <button class="tile interactive" style="flex: 1;" onclick="cancelTimer()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+/* clock logic */
+
+/* timer */
+let timerFinished = false;
+let timerInitialized = false;
+
+function startTimer() {
+    timerFinished = false;
+    timerHasStarted = true;
+
+    fetch("http://localhost:5000/start_timer", {
+        method: "POST", 
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            hours: document.getElementById("hoursInput").value || 0,
+            minutes: document.getElementById("minutesInput").value || 0,
+            seconds: document.getElementById("secondsInput").value || 0
+        })
+    });
+}
+
+function pauseTimer() {
+    fetch("http://localhost:5000/pause_timer", { method: "POST"});
+}
+
+function cancelTimer() {
+    timerFinished = false;
+    fetch("http://localhost:5000/cancel_timer", { method: "POST"});
+    document.getElementById("timerDisplay").textContent = "00:00:00"
+}
+
+setInterval(async () => {
+    const res = await fetch("http://localhost:5000/timer_status");
+    const data = await res.json();
+
+    if (!timerInitialized) {
+        timerInitialized = true;
+        return;
+    }
+
+    if (timerHasStarted && data.remaining === 0 && !data.running && !timerFinished) {
+        timerFinished = true;
+        showEvent("timer", "00:00:00")
+    }
+
+    if (data.running && data.remaining > 0) {
+        timerFinished = false;
+    }
+
+    const display = document.getElementById("timerDisplay");
+    if (!display) return;
+
+    let t = data.remaining;
+
+    let hours = String(Math.floor(t / 3600)).padStart(2, '0');
+    let minutes = String(Math.floor((t % 3600) / 60)).padStart(2, '0');
+    let seconds = String((t % 60)).padStart(2, '0');
+
+    display.textContent = `${hours}:${minutes}:${seconds}`;
+}, 200);
+
+/* stopwatch */
+let startTime = 0;
+let elapsedBeforePause = 0;
+let running = false;
+let animationFrame = null;
+
+function startStopwatch() {
+    fetch("http://localhost:5000/start_stopwatch", { method: "POST" });
+    
+    if (!running) {
+        startTime = Date.now();
+        running = true;
+        updateStopwatch();
+    }
+}
+
+function stopStopwatch() {
+    fetch("http://localhost:5000/stop_stopwatch", { method: "POST" });
+
+    if (running) {
+        elapsedBeforePause += Date.now() - startTime;
+        running = false;
+        cancelAnimationFrame(aniamtionFrame);
+    }
+}
+
+function resetStopwatch() {
+    fetch("http://localhost:5000/reset_stopwatch", { method: "POST" });
+
+    running = false;
+    startTime = 0;
+
+    cancelAnimationFrame(animationFrame);
+
+    const display = document.getElementById("stopwatchDisplay");
+    if (display) {
+        display.textContent = "00:00:00.00"
+    }
+}
+
+
+function updateStopwatch() {
+    if (!running) return;
+
+    const now = Date.now();
+    const total = elapsedBeforePause + (now - startTime)
+    
+    const totalSeconds = total / 1000;
+
+    const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+    const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+    const seconds = (totalSeconds % 60).toFixed(2).padStart(5, '0');
+    
+    const display = document.getElementById("stopwatchDisplay");
+    if (display) {
+        display.textContent = `${hours}:${minutes}:${seconds}`;
+    }
+
+animationFrame = requestAnimationFrame(updateStopwatch);
+
+}
+
+/* alarm section */
+let alarmTime = null;
+let alarmInterval;
+let alarmActive = false;
+let currentAlarmTime = null;
+
+const alarmSound = new Audio("8footdino_on_scratch-alarm-301729.mp3");
+alarmSound.loop = true;
+
+setInterval(async () => {
+    try {
+        const res = await fetch("http://localhost:5000/check_alarm");
+        const data = await res.json();
+
+        if (data.trigger && !alarmActive) {
+                alarmActive = true;
+                showEvent("alarm", data.time)
+        }
+        loadAlarms()
+    } catch (err) {
+        console.log("Alarm check failed:", err);
+    }
+}, 1000);
+
+function openTimePicker() {
+    const input = document.getElementById("alarmInput");
+
+    if (input.showPicker) {
+        input.showPicker();
+    } else {
+        input.focus();
+        input.click();
+    }
+}
+
+function setAlarm() {
+    const time = document.getElementById('alarmInput').value;
+
+    fetch("http://localhost:5000/set_alarm", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({ time: time})
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("Alarm set:", data.alarms);
+
+        loadAlarms();
+    });
+}
+
+async function loadAlarms() {
+    try {
+        const res = await fetch("http://localhost:5000/alarms");
+        const data = await res.json();
+
+        const list = document.getElementById("alarmList");
+
+        if (!list) return;
+
+        if (data.alarms.length === 0) {
+            list.innerHTML = "<p>No Alarms set</p>";
+            return;
+        }
+
+        list.innerHTML = data.alarms.map(time => {
+            return `
+                <div class="tile tile-row">
+                    <span>⏰ ${time}</span>
+                    <button onclick="deleteAlarm('${time}')">
+                        ❌
+                    </button>
+                </div>
+            `;
+        }).join("");
+    
+    } catch (err) {
+        console.log("Failed to load alarms:", err);
+    }
+}
+
+function deleteAlarm(time) {
+    fetch("http://localhost:5000/delete_alarm", {
+        method: "POST",
+        headers: {
+            "Content-Type" : "application/json"
+        },
+        body: JSON.stringify({ time: time })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            loadAlarms();
+        } else {
+            console.log("Failed");
+        }
+    })
+    .catch(err => console.log("Error deleting alarm", err));
+}
+
+function stopEvent() {
+    alarmActive = false;
+    currentAlarmTime = null;
+
+    alarmSound.pause()
+    alarmSound.currentTime = 0;
+
+    UIScreen.classList.remove("hidden");
+
+    alarmScreen.classList.add("hidden");
+    sleepscreen.classList.add("hidden");
+}
+
+function showEvent(type, message) {
+    eventActive = true;
+    currentEventType = type;
+
+    document.getElementById("eventTypeDisplay").textContent = 
+        type === "timer" ? "⏰ TIMER" : "⏰ ALARM"
+    
+    document.getElementById("eventTimeDisplay").textContent = 
+        message;
+
+    UIScreen.classList.add("hidden");
+    sleepscreen.classList.add("hidden");
+    alarmScreen.classList.remove("hidden");
+
+    alarmSound.currentTime = 0;
+    alarmSound.play();
+}
+
+/* =================================
+    Audio Logic
+================================= */
+
+const volumeSlider = document.getElementById("volumeSlider");
+const volumeLabel = document.getElementById("volumeLabel");
+const audioStatus = document.getElementById("audioStatus");
+
+function updateVolumeUI(val) {
+    if (volumeLabel) volumeLabel.textContent = `${val}%`;
+}
+
+if(volumeSlider) {
+    volumeSlider.addEventListener("input", async (e) => {
+        const level= e.target.value;
+        
+        updateVolumeUI(level);
+
+        try {
+            await fetch("http://localhost:5000/audio_volume", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ level: level})
+            });
+
+            if (audioStatus) {
+                audioStatus.textContent = `Volume: ${level}%`;
+            }
+        } catch (err) {
+            console.log("Volume error:", err);
+        }
+    });
+}
+
+function setVolumeQuick(level) {
+    if (volumeSlider) volumeSlider.value = level;
+    updateVolumeUI(level);
+
+    fetch("http://localhost:5000/audio_volume", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ level })
+    });
+
+    if (audioStatus) {
+        audioStatus.textContent = `Quick set: ${level}%`;
+    }
+}
+
+function toggleMute() {
+    fetch("http://localhost:5000/audio_mute", {
+        method: "POST"
+    })
+    .then(() => {
+        if (audioStatus) {
+            audioStatus.textContent = "Mute toggled";
+        }
+    })
+    .catch(err => console.log("Mute error:", err));
+}
+
+/* ============================
+Calendar Logic
+=============================*/
+
+function openCalendar() {
+    const container = document.getElementById("calendarMenuContent");
+
+    const now = new Date();
+
+    container.innerHTML = `
+        <div class="flex-column" style="gap:15px;">
+            
+            <div style="text-align:center; font-size:28px;">
+                ${now.toDateString()}
+            </div>
+
+            <div class="tile">
+                <div style="font-size:30px; margin-bottom:10px">Upcoming Holiday</div>
+                <div id="holidayBox">Loading...</div>
+            </div>
+
+            <div class="tile">
+                <div style="font-size:30px; margin-bottom:10px">Important Times</div>
+                <div id="overviewBox">Loading...</div>
+            </div>
+
+        </div>
+    `;
+    loadHoliday();
+    loadOverview();
+}
+
+async function loadHoliday() {
+    const now = new Date();
+    const year = now.getFullYear();
+
+    const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/US`);
+    const holidays = await res.json();
+
+    const today = new Date();
+
+    const next = holidays
+        .map(h => ({
+            name: h.name,
+            date: new Date(h.date)
+        }))
+        .filter(h => h.date.getTime() >= today.getTime())
+        .sort((a, b) => a.date - b.date)[0];
+    
+    const box = document.getElementById("holidayBox")
+
+    if (!next) {
+        box.textContent = "No upcoming holidays";
+        return;
+    }
+
+    box.innerHTML = `
+        <b>${next.name}  |  ${next.date.toDateString()}</b><br>
+    `;
+}
+async function loadOverview() {
+    const box = document.getElementById("overviewBox");
+    if (!box) return;
+
+    try {
+        const res = await fetch("http://localhost:5000/alarms");
+        const data = await res.json();
+
+        const alarms = data.alarms || [];
+
+        if (alarms.length === 0) {
+            box.innerHTML = `
+                <div style="opacity:0.7;">
+                    No alarms set
+                </div>
+            `;
+            return;
+        }
+    
+        box.innerHTML = `
+            <div style="margin-bottom:8px;">⏰ Alarms Set</div>
+            
+            <div id="alarm-grid">
+                ${alarms.map(a => `
+                <div class="tile" style="padding:5px 0;">
+                    ${a}
+                </div>
+                `).join("")}
+            </div>
+        `;
+    } catch (err) {
+        console.log("important time view load failed:", err);
+        box.textContent = "failed to load alarms";
+    }
+}
+/* ============================
+ Settings Logic
+============================ */
+
+const brightnessSlider = document.getElementById('brightnessSlider');
+const themeSlider = document.getElementById('themeSlider');
+const soundSlider = document.getElementById('soundSlider');
+
+const theme = document.querySelector('.UI');
+
+brightnessSlider.addEventListener('input', () => {
+    const brightness = brightnessSlider.value;
+    document.querySelector('.frame').style.filter = `brightness(${brightness}%)`;
+});
+
+themeSlider.addEventListener('input', () => {
+
+        if (themeSlider.value == 0) {
+            document.body.classList.add('light')
+        } else {
+            document.body.classList.remove('light')
+            }
+});
+
+let SoundOn = true;
+
+soundSlider.addEventListener('input', () => {
+        SoundOn = soundSlider.value == 1;
+});
+
+/* ============================
+ Menu Toggle Logic
+============================ */
+
+function toggleMenu(menuID) {
+    const target = document.getElementById(menuID);
+
+    target.classList.toggle('hiddenMenu');
+
+    if (menuID === "calendarMenu") {
+        openCalendar();
+    }
+}
+
+
+</script>
+</body>
+</html>
